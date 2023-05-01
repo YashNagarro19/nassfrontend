@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-//import { BrowserRouter,Routes, Route} from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 import useLinkedIn, { LinkedIn } from 'react-linkedin-login-oauth2';
-//import LinkedInButton from './LoginviaLinkedIn';
+import "./displayQuestion.css"
 
 import {
   MDBContainer,
@@ -19,15 +19,28 @@ from 'mdb-react-ui-kit';
 
 const Login=()=>
     { 
-        const [email,setEmail]=useState("email id"); 
-        const [password,setPassword]=useState("******"); 
-        const[dataInput, setDataInput]=useState(""); 
+        const [email,setEmail]=useState(""); 
+        const [password,setPassword]=useState(""); 
+        const [dataInput, setDataInput]=useState(""); 
+        const navigate = useNavigate();
+        const [registerUsername, setRegisterUsername] = useState("");
+        const [registerEmail, setRegisterEmail] = useState("");
+        const [registerPassword,setRegisterPassword]=useState(""); 
+
         const submitThis=()=>{
             const info={email:email,password:password}; 
             console.log(info);
+            navigate("/displayQuestions")
             setDataInput([info]);
         }
         
+        const registerUser=()=>{
+            const info={ registerUsername:registerUsername,registerEmail:registerEmail,registerPassword:registerPassword}; 
+            console.log(info);
+            setDataInput([info]);
+            navigate("/")
+        }
+
         const [justifyActive, setJustifyActive] = useState('tab1');;
 
         const handleJustifyClick = (value) => {
@@ -106,13 +119,13 @@ const Login=()=>
                         <p className="text-center mt-3">or:</p>
                     </div>
                     <label className="form-label">Username</label>
-                    <MDBInput wrapperclassName='mb-4' id='registerUsername' type='text'/>
+                    <MDBInput wrapperclassName='mb-4' id='registerUsername' type='text' value={registerUsername} onChange={(e)=>setRegisterUsername(e.target.value)}/>
                     <label className="form-label">Email</label>
-                    <MDBInput wrapperclassName='mb-4' id='registerEmail' type='email'/>
+                    <MDBInput wrapperclassName='mb-4' id='registerEmail' value={registerEmail} onChange={(e)=>setRegisterEmail(e.target.value)} type='email'/>
                     <label className="form-label">Password</label>
-                    <MDBInput wrapperclassName='mb-4' id='registerPassword' type='password'/>
+                    <MDBInput wrapperclassName='mb-4' id='registerPassword' type='password' value={registerPassword} onChange={(e)=>setRegisterPassword(e.target.value)}/>
 
-                    <MDBBtn className="mb-4 w-100" type='submit'>Sign up</MDBBtn>
+                    <MDBBtn className="mb-4 w-100" onClick={registerUser} type='submit'>Sign up</MDBBtn>
 
                     </MDBTabsPane>
 
