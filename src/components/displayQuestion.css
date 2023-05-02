@@ -75,7 +75,7 @@ label.box .circle {
 }
 
 input[type="radio"] {
-    display: none
+    display:inline-block
 }
 
 @media(max-width: 450px) {

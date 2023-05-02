@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./displayQuestion.css"
 
-
 function DisplayQuestion() {
+  const [ansList, setAnsList] = useState([]);
   const [data, setData] = useState([]);
-  
+  var ans = { }
   //const [activeQuestion, setActiveQuestion] = useState(0)
   useEffect(() => {
     fetch("https://nasswebapp.azurewebsites.net/getQuestions",{method:'get'})
@@ -20,62 +20,62 @@ function DisplayQuestion() {
     var question = jp.query(quiz,'$.questionList')
     //console.log(question);
 
-    // document.body.onload = addElement;
-
-    // function addElement() {
-    //   // create a new div element
-    //   const newDiv = document.createElement("div");
-
-    //   // and give it some content
-    //   const newContent = document.createDocumentFragment();
-
-    //   const questionsList = jp.query(quiz,'$.questionList');
-    //   // add the text node to the newly created div
-    //   newDiv.appendChild(newContent);
-
-    //   // add the newly created element and its content into the DOM
-    //   const currentDiv = document.getElementById("div1");
-    //   document.body.insertBefore(newDiv, currentDiv);
-    // }
-
-    // const element = document.getElementById("dynamicDiv"); // assuming ul exists
-    // const fragment = document.createDocumentFragment();
-    // const browsers = jp.query(quiz,'$.questionList');
-
-    // browsers.forEach((browser) => {
-    //   const li = document.createElement("li");
-    //   li.textContent = browser;
-    //   fragment.appendChild(li);
-    // });
-
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showSubmit, setShowSubmit] = useState(false);
     var questionCount = jp.query(quiz,"$..question").length
     //console.log(questionCount)
     var questionValue ='$.questionList['+ currentQuestion +'].question'
+    var questionId = '$.questionList['+ currentQuestion +'].questionId'
     var optionAValue = '$.questionList['+ currentQuestion +'].optionA'
     var optionBValue = '$.questionList['+ currentQuestion +'].optionB'
     var optionCValue = '$.questionList['+ currentQuestion +'].optionC'
     var optionDValue = '$.questionList['+ currentQuestion +'].optionD'
 
     const setQuestionId = (currentQuestion)=>{
-      questionValue ='$.questionList['+ currentQuestion +'].question'
+      questionValue= '$.questionList['+ currentQuestion +'].question'
+      questionId   = '$.questionList['+ currentQuestion +'].questionId'
       optionAValue = '$.questionList['+ currentQuestion +'].optionA'
       optionBValue = '$.questionList['+ currentQuestion +'].optionB'
       optionCValue = '$.questionList['+ currentQuestion +'].optionC'
       optionDValue = '$.questionList['+ currentQuestion +'].optionD'
     }
 
+    
+
     const handleNextButtonClick = () => {
-    const nextQuestion = currentQuestion + 1;
-    if (nextQuestion < questionCount) {
-      setCurrentQuestion(nextQuestion);
-      setQuestionId(nextQuestion)
-      if(nextQuestion == questionCount-1){
-        setShowSubmit(true)
+        
+      ans["qId"] = jp.query(quiz,questionId)[0] 
+      if(document.getElementById('one').checked){
+            ans["ansId"] = jp.query(quiz,optionAValue)[0]
       }
-    }
-  };
+      if(document.getElementById('two').checked){
+        ans["ansId"] = jp.query(quiz,optionBValue)[0]
+      }
+      if(document.getElementById('three').checked){
+        ans["ansId"] = jp.query(quiz,optionCValue)[0]
+      }
+      if(document.getElementById('four').checked){
+        ans["ansId"] = jp.query(quiz,optionDValue)[0]
+      }
+
+      console.log(ans)
+      console.log("before anslist")
+      console.log(ansList)
+
+      setAnsList(ansList => ansList.concat(ans))
+      console.log("after anslist")
+      console.log(ansList)
+      console.log("print anslist")
+
+      const nextQuestion = currentQuestion + 1;
+      if (nextQuestion < questionCount) {
+        setCurrentQuestion(nextQuestion);
+        setQuestionId(nextQuestion)
+        if(nextQuestion == questionCount-1){
+          setShowSubmit(true)
+        }
+      }
+     };
 
     const handleBackButtonClick = () => {
       const nextQuestion = currentQuestion - 1;
@@ -106,47 +106,48 @@ function DisplayQuestion() {
           <div className="col-12">
             <p className="fw-bold">Q{currentQuestion + 1}: {jp.query(quiz,questionValue)}</p>
             <div>
-              <input type="radio" name="box" id="one" />
+              
               <label htmlFor="one" className="box first">
                 <div className="course">
-                  <span className="circle"></span>
+                  <input type="radio" className="circle" name="box" id="one" />
                   <span className="subject">{jp.query(quiz,optionAValue)}  </span>
                 </div>
               </label>
-              <input type="radio" name="box" id="two" />
+              
               <label htmlFor="two" className="box second">
                 <div className="course"> 
-                <span className="circle"></span> 
+                <input type="radio" className="circle" name="box" id="two" />
                 <span className="subject">{jp.query(quiz,optionBValue)} </span>  
                 </div>
               </label>
-              <input type="radio" name="box" id="three" />
+              
               <label htmlFor="three" className="box third">
                 <div className="course"> 
-                <span className="circle"></span> 
+                <input type="radio" className="circle" name="box" id="three" />
                 <span className="subject"> {jp.query(quiz,optionCValue)} </span>
                 </div>
               </label>
-              <input type="radio" name="box" id="four" />
+              
               <label htmlFor="four" className="box forth">
                 <div className="course"> 
-                  <span className="circle"></span> 
+                <input type="radio" className="circle" name="box" id="four" />
                   <span className="subject"> {jp.query(quiz,optionDValue)}</span>
                 </div>
               </label>
+            
             </div>
           </div>
         </div>
-             <div>
-          <button type="button" class="btn btn-secondary" onClick={handleBackButtonClick} >Previous</button>
-          {/* <button type="button" class="btn btn-info" onclick={handleResetButtonClick}>Reset</button> */}
-          {
-            showSubmit?
-            (<button type="button" class="btn btn-success" onClick={handleSubmitButtonClick} >Submit</button>):
-            (<button type="button" class="btn btn-warning" onClick={handleNextButtonClick} >Next</button>)             
-          }            
+             <div >
+                <button type="button" class="btn btn-secondary" onClick={handleBackButtonClick} >&lt; Previous</button>
+                {/* <button type="button" class="btn btn-info" onclick={handleResetButtonClick}>Reset</button> */}
+                {
+                  showSubmit?
+                  (<button type="button" class="btn btn-success" onClick={handleSubmitButtonClick} >Submit</button>):
+                  (<button type="button" class="btn btn-success" onClick={handleNextButtonClick} >Next &gt; </button>)             
+                }            
+              </div>
         </div>
-      </div>
     );
 }
 
