@@ -2,21 +2,22 @@ import React, { useEffect, useState } from "react";
 import "./displayQuestion.css"
 
 function DisplayQuestion() {
-  const [ansList, setAnsList] = useState([]);
-  const [data, setData] = useState([]);
-  var ans = { }
-  //const [activeQuestion, setActiveQuestion] = useState(0)
-  useEffect(() => {
-    fetch("https://nasswebapp.azurewebsites.net/getQuestions",{method:'get'})
-      .then((response) => response.json())
-      .then((result) => setData(result))
-      .catch((error) => console.error(error));
-  });
+
+    const initialAnsList =[{}]
+    const [ansList, setAnsList] = useState([]);
+    //var ansList  = []
+    const [data, setData] = useState([]);
+    //const [activeQuestion, setActiveQuestion] = useState(0)
+    useEffect(() => {
+      fetch("http://127.0.0.1:8000/getQuestions",{method:'get'})
+        .then((response) => response.json())
+        .then((result) => setData(result))
+        .catch((error) => console.error(error));
+    });
 
     const quiz  = data
     //console.log(quiz)
     var jp = require('jsonpath');
-   
     var question = jp.query(quiz,'$.questionList')
     //console.log(question);
 
@@ -40,34 +41,36 @@ function DisplayQuestion() {
       optionDValue = '$.questionList['+ currentQuestion +'].optionD'
     }
 
-    
+//#region Button click region
 
     const handleNextButtonClick = () => {
         
-      ans["qId"] = jp.query(quiz,questionId)[0] 
+      var qId = jp.query(quiz,questionId)[0];
+      var ansId = '';
       if(document.getElementById('one').checked){
-            ans["ansId"] = jp.query(quiz,optionAValue)[0]
+            ansId = jp.query(quiz,optionAValue)[0]
       }
       if(document.getElementById('two').checked){
-        ans["ansId"] = jp.query(quiz,optionBValue)[0]
+        ansId = jp.query(quiz,optionBValue)[0]
       }
       if(document.getElementById('three').checked){
-        ans["ansId"] = jp.query(quiz,optionCValue)[0]
+        ansId = jp.query(quiz,optionCValue)[0]
       }
       if(document.getElementById('four').checked){
-        ans["ansId"] = jp.query(quiz,optionDValue)[0]
+        ansId = jp.query(quiz,optionDValue)[0]
       }
 
-      console.log(ans)
       console.log("before anslist")
+      // ansList.push(ans)
+      const newItem = {qId: qId, aId : ansId };
+      console.log(newItem)
+      const updatedArray = [...ansList, newItem];
+      setAnsList((updatedArray));
+
+      //setAnsList(ansList => ansList.concat(ans))
       console.log(ansList)
 
-      setAnsList(ansList => ansList.concat(ans))
-      console.log("after anslist")
-      console.log(ansList)
-      console.log("print anslist")
-
-      const nextQuestion = currentQuestion + 1;
+      const nextQuestion =  currentQuestion+ 1;
       if (nextQuestion < questionCount) {
         setCurrentQuestion(nextQuestion);
         setQuestionId(nextQuestion)
@@ -75,7 +78,7 @@ function DisplayQuestion() {
           setShowSubmit(true)
         }
       }
-     };
+    };
 
     const handleBackButtonClick = () => {
       const nextQuestion = currentQuestion - 1;
@@ -99,6 +102,8 @@ function DisplayQuestion() {
       document.getElementById('three').checked=false;
       document.getElementById('four').checked=false;
     };
+
+    //#endregion
 
   return (
       <div className="container mb-5">
@@ -139,12 +144,12 @@ function DisplayQuestion() {
           </div>
         </div>
              <div >
-                <button type="button" class="btn btn-secondary" onClick={handleBackButtonClick} >&lt; Previous</button>
-                {/* <button type="button" class="btn btn-info" onclick={handleResetButtonClick}>Reset</button> */}
+                <button type="button" className="btn btn-secondary" onClick={handleBackButtonClick} >&lt; Previous</button>
+                {/* <button type="button" className="btn btn-info" onclick={handleResetButtonClick}>Reset</button> */}
                 {
                   showSubmit?
-                  (<button type="button" class="btn btn-success" onClick={handleSubmitButtonClick} >Submit</button>):
-                  (<button type="button" class="btn btn-success" onClick={handleNextButtonClick} >Next &gt; </button>)             
+                  (<button type="button" className="btn btn-success" onClick={handleSubmitButtonClick} >Submit</button>):
+                  (<button type="button" className="btn btn-success" onClick={handleNextButtonClick} > Next &gt; </button>)             
                 }            
               </div>
         </div>
@@ -152,5 +157,3 @@ function DisplayQuestion() {
 }
 
 export default DisplayQuestion;
-
-//setData(result)
