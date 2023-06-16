@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import "./displayQuestion.css"
+const ansList  = [];
 
 function DisplayQuestion() {
 
-    const initialAnsList =[{}]
-    const [ansList, setAnsList] = useState([]);
-    //var ansList  = []
+//#region Declaration and assigment of variables
+
     const [data, setData] = useState([]);
-    //const [activeQuestion, setActiveQuestion] = useState(0)
     useEffect(() => {
-      fetch("http://127.0.0.1:8000/getQuestions",{method:'get'})
+      fetch("https://nassams.azurewebsites.net/getQuestions",{method:'get'})
         .then((response) => response.json())
         .then((result) => setData(result))
         .catch((error) => console.error(error));
@@ -19,12 +18,11 @@ function DisplayQuestion() {
     //console.log(quiz)
     var jp = require('jsonpath');
     var question = jp.query(quiz,'$.questionList')
-    //console.log(question);
+    //console.log(question)
 
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showSubmit, setShowSubmit] = useState(false);
     var questionCount = jp.query(quiz,"$..question").length
-    //console.log(questionCount)
     var questionValue ='$.questionList['+ currentQuestion +'].question'
     var questionId = '$.questionList['+ currentQuestion +'].questionId'
     var optionAValue = '$.questionList['+ currentQuestion +'].optionA'
@@ -41,14 +39,15 @@ function DisplayQuestion() {
       optionDValue = '$.questionList['+ currentQuestion +'].optionD'
     }
 
+//#endregion
+
 //#region Button click region
 
     const handleNextButtonClick = () => {
-        
       var qId = jp.query(quiz,questionId)[0];
       var ansId = '';
       if(document.getElementById('one').checked){
-            ansId = jp.query(quiz,optionAValue)[0]
+        ansId = jp.query(quiz,optionAValue)[0]
       }
       if(document.getElementById('two').checked){
         ansId = jp.query(quiz,optionBValue)[0]
@@ -60,40 +59,42 @@ function DisplayQuestion() {
         ansId = jp.query(quiz,optionDValue)[0]
       }
 
-      console.log("before anslist")
       // ansList.push(ans)
       const newItem = {qId: qId, aId : ansId };
-      console.log(newItem)
-      const updatedArray = [...ansList, newItem];
-      setAnsList((updatedArray));
-
-      //setAnsList(ansList => ansList.concat(ans))
+      ansList.push(newItem)
       console.log(ansList)
-
-      const nextQuestion =  currentQuestion+ 1;
+      console.log("currentQuestion ", currentQuestion)
+      const nextQuestion =  currentQuestion + 1;
       if (nextQuestion < questionCount) {
         setCurrentQuestion(nextQuestion);
         setQuestionId(nextQuestion)
         if(nextQuestion == questionCount-1){
+          setCurrentQuestion(nextQuestion);
+          setQuestionId(nextQuestion)
           setShowSubmit(true)
         }
       }
     };
 
     const handleBackButtonClick = () => {
-      const nextQuestion = currentQuestion - 1;
-      if (nextQuestion >= 0) {
-        setCurrentQuestion(nextQuestion);
-        setQuestionId(nextQuestion)
+      const previousQuestion = currentQuestion - 1;
+      if (previousQuestion >= 0) {
+        //console.log("currentQuestion ",currentQuestion)
+        setCurrentQuestion(previousQuestion);
+        setQuestionId(previousQuestion)
+        //console.log("previousQuestion ", previousQuestion);
+        ansList.pop(previousQuestion);
+        console.log(ansList);
         setShowSubmit(false)
-      } 
+      }
       else{
         alert("You reached the first question")
       }
     };
 
     const handleSubmitButtonClick = ()=>{
-          alert("saved successfully")
+      handleNextButtonClick();
+      alert("saved successfully")
     };
 
     const handleResetButtonClick = ()=>{
@@ -103,8 +104,9 @@ function DisplayQuestion() {
       document.getElementById('four').checked=false;
     };
 
-    //#endregion
+//#endregion
 
+//#region Display region
   return (
       <div className="container mb-5">
         <div className="row">
@@ -154,6 +156,7 @@ function DisplayQuestion() {
               </div>
         </div>
     );
+//#endregion
 }
 
 export default DisplayQuestion;
