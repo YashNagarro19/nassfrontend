@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./displayQuestion.css"
-const ansList  = [];
+let ansList  = [];
 
 function DisplayQuestion() {
 
@@ -15,13 +15,12 @@ function DisplayQuestion() {
     });
 
     const quiz  = data
-    //console.log(quiz)
     var jp = require('jsonpath');
     var question = jp.query(quiz,'$.questionList')
-    //console.log(question)
-
+    const radioButtonsRef = useRef([]);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showSubmit, setShowSubmit] = useState(false);
+
     var questionCount = jp.query(quiz,"$..question").length
     var questionValue ='$.questionList['+ currentQuestion +'].question'
     var questionId = '$.questionList['+ currentQuestion +'].questionId'
@@ -39,13 +38,9 @@ function DisplayQuestion() {
       optionDValue = '$.questionList['+ currentQuestion +'].optionD'
     }
 
-//#endregion
-
-//#region Button click region
-
-    const handleNextButtonClick = () => {
+    const getSelectedAns = ()=>{
       var qId = jp.query(quiz,questionId)[0];
-      var ansId = '';
+      var ansId = null;
       if(document.getElementById('one').checked){
         ansId = jp.query(quiz,optionAValue)[0]
       }
@@ -58,38 +53,109 @@ function DisplayQuestion() {
       if(document.getElementById('four').checked){
         ansId = jp.query(quiz,optionDValue)[0]
       }
+      return [qId,ansId];
+    }
 
-      // ansList.push(ans)
-      const newItem = {qId: qId, aId : ansId };
-      ansList.push(newItem)
-      console.log(ansList)
-      console.log("currentQuestion ", currentQuestion)
-      const nextQuestion =  currentQuestion + 1;
-      if (nextQuestion < questionCount) {
-        setCurrentQuestion(nextQuestion);
-        setQuestionId(nextQuestion)
-        if(nextQuestion == questionCount-1){
+    const checkSelectedAns = (answerId)=>{
+      var ansA = jp.query(quiz,optionAValue)[0]
+      var ansB = jp.query(quiz,optionBValue)[0]
+      var ansC = jp.query(quiz,optionCValue)[0]
+      var ansD = jp.query(quiz,optionDValue)[0]
+      if(answerId == ansA){
+        document.getElementById("one").checked = true;
+      }
+      if(answerId == ansB){
+        document.getElementById("two").checked = true;
+      }                
+      if(answerId == ansC){
+        document.getElementById("three").checked = true;
+      }    
+      if(answerId == ansD){
+        document.getElementById("four").checked = true;
+      }     
+    }
+
+    const getArrayId = (qId)=>{
+      var arrayId = -1
+      for (let i = 0; i < ansList.length; i++) {
+        if(ansList[i].qId == qId){
+          arrayId = i
+          break;
+        }
+      }
+      return arrayId;
+    }
+//#endregion
+
+//#region Button click region
+
+    const handleNextButtonClick = () => {
+      var [qId, ansId] = getSelectedAns();
+      if(ansId == null)
+      {
+        alert("Please select option to proceed")
+      }
+      else{
+        const newItem = {qId: qId, aId : ansId};
+        if(ansList.length == 0){
+          ansList.push(newItem)
+        }
+        else{
+          var arrayId = getArrayId(qId)
+          if(arrayId != -1) {
+            ansList[arrayId].aId = ansId
+          }
+          else {
+            ansList.push(newItem)
+          }
+        }
+        const nextQuestion =  currentQuestion + 1;
+        if (nextQuestion < questionCount) {
           setCurrentQuestion(nextQuestion);
           setQuestionId(nextQuestion)
-          setShowSubmit(true)
+          qId = jp.query(quiz,questionId)[0];
+          if(nextQuestion == questionCount-1){
+           setShowSubmit(true)
+          }
         }
+        var arrayId = getArrayId(qId)
+        if(arrayId != -1){
+          checkSelectedAns(ansList[arrayId].aId)
+        }
+        else{
+          handleResetButtonClick()
+        }
+        console.log("ansList next button:",ansList)
       }
     };
 
-    const handleBackButtonClick = () => {
+    const handlePreviousButtonClick = () =>{
       const previousQuestion = currentQuestion - 1;
-      if (previousQuestion >= 0) {
-        //console.log("currentQuestion ",currentQuestion)
-        setCurrentQuestion(previousQuestion);
-        setQuestionId(previousQuestion)
-        //console.log("previousQuestion ", previousQuestion);
-        ansList.pop(previousQuestion);
-        console.log(ansList);
-        setShowSubmit(false)
-      }
-      else{
+      if (previousQuestion < 0) {
         alert("You reached the first question")
       }
+      else{
+            var [qId, ansId] = getSelectedAns();
+            if(ansId == null){
+              let updateList =[]
+              ansList.forEach((item)=>{
+                if(item.qId == qId){
+                  updateList = ansList.filter(item => item.qId !== qId);
+                  ansList = updateList;
+                }
+              })
+            }
+            setCurrentQuestion(previousQuestion);
+            setQuestionId(previousQuestion)
+            qId = jp.query(quiz,questionId)[0];
+            ansList.forEach((item)=>{
+              if(item.qId == qId){
+                checkSelectedAns(item.aId)
+              }
+            })
+            setShowSubmit(false);
+          }
+          console.log("ansList previous button: ", ansList)
     };
 
     const handleSubmitButtonClick = ()=>{
@@ -98,10 +164,9 @@ function DisplayQuestion() {
     };
 
     const handleResetButtonClick = ()=>{
-      document.getElementById('one').checked=false;
-      document.getElementById('two').checked=false;
-      document.getElementById('three').checked=false;
-      document.getElementById('four').checked=false;
+      radioButtonsRef.current.forEach((radioButton) => {
+        radioButton.checked = false;
+      });
     };
 
 //#endregion
@@ -116,28 +181,28 @@ function DisplayQuestion() {
               
               <label htmlFor="one" className="box first">
                 <div className="course">
-                  <input type="radio" className="circle" name="box" id="one" />
+                  <input type="radio" className="circle" name="box" id="one"  value="optionA" ref={(el) => (radioButtonsRef.current[0] = el)} />
                   <span className="subject">{jp.query(quiz,optionAValue)}  </span>
                 </div>
               </label>
               
               <label htmlFor="two" className="box second">
                 <div className="course"> 
-                <input type="radio" className="circle" name="box" id="two" />
+                <input type="radio" className="circle" name="box" id="two" value="optionB" ref={(el) => (radioButtonsRef.current[1] = el)} />
                 <span className="subject">{jp.query(quiz,optionBValue)} </span>  
                 </div>
               </label>
               
               <label htmlFor="three" className="box third">
                 <div className="course"> 
-                <input type="radio" className="circle" name="box" id="three" />
+                <input type="radio" className="circle" name="box" id="three"  value="optionC" ref={(el) => (radioButtonsRef.current[2] = el)} />
                 <span className="subject"> {jp.query(quiz,optionCValue)} </span>
                 </div>
               </label>
               
               <label htmlFor="four" className="box forth">
                 <div className="course"> 
-                <input type="radio" className="circle" name="box" id="four" />
+                <input type="radio" className="circle" name="box" id="four" value="optionD" ref={(el) => (radioButtonsRef.current[3] = el)} />
                   <span className="subject"> {jp.query(quiz,optionDValue)}</span>
                 </div>
               </label>
@@ -146,8 +211,8 @@ function DisplayQuestion() {
           </div>
         </div>
              <div >
-                <button type="button" className="btn btn-secondary" onClick={handleBackButtonClick} >&lt; Previous</button>
-                {/* <button type="button" className="btn btn-info" onclick={handleResetButtonClick}>Reset</button> */}
+                <button type="button" className="btn btn-secondary" onClick={handlePreviousButtonClick} >&lt; Previous</button>
+                <button type="button" className="btn btn-info" onClick={handleResetButtonClick}>Reset</button>
                 {
                   showSubmit?
                   (<button type="button" className="btn btn-success" onClick={handleSubmitButtonClick} >Submit</button>):
